@@ -6,6 +6,8 @@ using UnityEngine;
 public class AttackState : PlayerState
 {
     private bool isAnimationFinished = false;
+    private float attackRange = 1.5f;
+    private float attackRadius = 1.0f;
 
     public AttackState(PlayerController player, PlayerStateMachine stateMachine)
         : base(player, stateMachine) { }
@@ -33,10 +35,32 @@ public class AttackState : PlayerState
         {
             stateMachine.ChangeState(player.idleState);
         }
+
+#if UNITY_EDITOR
+        // 디버그용 히트박스 시각화
+        Debug.DrawRay(player.transform.position + Vector3.up, player.transform.forward * attackRange, Color.red);
+#endif
     }
 
     /// <summary>
-    /// 애니메이션 이벤트에서 호출됨
+    /// 공격 애니메이션에서 호출됨 - 타격 판정 수행
+    /// </summary>
+    public void PerformAttack()
+    {
+        Vector3 origin = player.transform.position + player.transform.forward;
+        Collider[] hitColliders = Physics.OverlapSphere(origin, attackRadius);
+
+        foreach (var collider in hitColliders)
+        {
+            if (collider.TryGetComponent(out IDamageable damageable))
+            {
+                damageable.TakeDamage(20); // 공격 데미지
+            }
+        }
+    }
+
+    /// <summary>
+    /// 공격 애니메이션 종료 시 호출됨
     /// </summary>
     public void OnAttackAnimationEnd()
     {

@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 /// 플레이어 캐릭터 제어 및 상태 관리 메인 클래스
 /// </summary>
 [RequireComponent(typeof(CharacterController))]
-public class PlayerController : MonoBehaviour
+public class PlayerController : MonoBehaviour, IDamageable
 {
     [Header("이동 속도")]
     public float moveSpeed = 5f;
@@ -56,6 +56,14 @@ public class PlayerController : MonoBehaviour
         stateMachine.Update();
     }
 
+    public void PerformAttack()
+    {
+        if (stateMachine.CurrentState is AttackState attackState)
+        {
+            attackState.PerformAttack();
+        }
+    }
+
     /// <summary>
     /// 공격 애니메이션 종료 시 Animator Event에서 호출됨
     /// </summary>
@@ -70,7 +78,6 @@ public class PlayerController : MonoBehaviour
     /// <summary>
     /// 피격 테스트용 메서드 (임시)
     /// </summary>
-    /// <param name="amount"></param>
     public void TakeDamage(int amount)
     {
         if (stateMachine.CurrentState == deadState) return;
@@ -81,6 +88,10 @@ public class PlayerController : MonoBehaviour
         {
             currentHealth = 0;
             stateMachine.ChangeState(deadState);
+        }
+        else
+        {
+            animator.SetTrigger("Hit"); // 피격 애니메이션 트리거
         }
     }
 }
