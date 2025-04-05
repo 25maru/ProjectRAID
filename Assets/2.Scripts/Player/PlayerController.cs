@@ -7,47 +7,47 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(CharacterController))]
 public class PlayerController : MonoBehaviour, IDamageable
 {
-    [Header("이동")]
+    [FoldoutGroup("이동", ExtendedColor.White)]
     [SerializeField] private float moveSpeed = 2f;                      // 걷기 속도
     [SerializeField] private float runSpeed = 6f;                       // 달리기 속도
     [SerializeField] private float rotationSpeed = 720f;                // 회전 속도
     private Vector2 moveInput;                                          // 이동 입력
     private bool isRunning = false;                                     // 달리기 여부
 
-    [Header("넉백")]
+    [FoldoutGroup("넉백", ExtendedColor.Crimson)]
     [SerializeField] private float knockbackDuration = 0.2f;            // 넉백 지속 시간
     [SerializeField] private float knockbackPower = 5f;                 // 넉백 힘
     private Vector3 knockbackDirection;                                 // 넉백 방향
     private float knockbackTimer;                                       // 넉백 타이머
 
-    [Header("피격 무적 시간")]
+    [FoldoutGroup("피격 무적 시간", ExtendedColor.Crimson)]
     [SerializeField] private float invincibleDuration = 1f;             // 피격 후 무적 시간
     private bool isInvincible = false;                                  // 현재 무적 상태 여부
     private float invincibleTimer = 0f;                                 // 무적 시간 타이머
 
-    [Header("상태값")]
+    [FoldoutGroup("공격 판정", ExtendedColor.GreenYellow)]
+    [SerializeField] private float attackRadius = 1.5f;                 // 공격 반경
+
+    [FoldoutGroup("상호작용", ExtendedColor.GreenYellow)]
+    [SerializeField] private float interactRange = 2f;                  // 상호작용 거리
+    [SerializeField] private LayerMask interactableLayer;               // 상호작용 가능한 레이어
+    private IInteractable currentInteractable;                          // 현재 상호작용 대상
+
+    [FoldoutGroup("스탯", ExtendedColor.LimeGreen)]
     [SerializeField] private int maxHealth = 100;                       // 최대 체력
     private int currentHealth;                                          // 현재 체력
 
-    [Header("컴포넌트")]
+    [FoldoutGroup("컴포넌트", ExtendedColor.SeaGreen)]
     [SerializeField] private CharacterController characterController;   // 캐릭터 컨트롤러
     [SerializeField] private Animator animator;                         // 애니메이터
     [SerializeField] private PlayerInput input;                         // 인풋 시스템
 
-    [Header("상태 머신")]
+    [FoldoutGroup("상태 머신", ExtendedColor.DodgerBlue)]
     private PlayerStateMachine stateMachine;                            // 상태 머신
     private IdleState idleState;                                        // 대기 상태
     private AttackState attackState;                                    // 공격 상태
     private DeadState deadState;                                        // 사망 상태
     private InteractionState interactionState;                          // 상호작용 상태
-
-    [Header("공격 판정")]
-    [SerializeField] private float attackRadius = 1.5f;                 // 공격 반경
-
-    [Header("상호작용")]
-    [SerializeField] private float interactRange = 2f;                  // 상호작용 거리
-    [SerializeField] private LayerMask interactableLayer;               // 상호작용 가능한 레이어
-    private IInteractable currentInteractable;                          // 현재 상호작용 대상
 
     // 이동
     public float MoveSpeed => moveSpeed;
