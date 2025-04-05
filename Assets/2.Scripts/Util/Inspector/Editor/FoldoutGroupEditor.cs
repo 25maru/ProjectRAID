@@ -18,23 +18,18 @@ public class FoldoutGroupEditor : Editor
 
     public override VisualElement CreateInspectorGUI()
     {
-        // 그룹, 속성 리스트 초기화
-        groupedProperties = new Dictionary<string, List<SerializedProperty>>();
-        groupAttributes = new Dictionary<string, FoldoutGroupAttribute>();
-        ungroupedProperties = new List<SerializedProperty>();
+        groupedProperties = new();
+        groupAttributes = new();
+        ungroupedProperties = new();
 
         var root = new VisualElement();
 
-        // 스타일시트 적용
         if (editorStyleSheet != null)
-        {
             root.styleSheets.Add(editorStyleSheet);
-        }
 
         var iterator = serializedObject.GetIterator();
-        iterator.NextVisible(true); // m_Script 필드 건너뛰기
+        iterator.NextVisible(true);
 
-        // m_Script 필드 포함시키기 (스크립트 연결 필드 표시)
         var scriptField = new PropertyField(iterator.Copy()) { name = "Script" };
         scriptField.SetEnabled(false);
         root.Add(scriptField);
@@ -42,7 +37,6 @@ public class FoldoutGroupEditor : Editor
         var fields = target.GetType().GetFields(BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic);
         FoldoutGroupAttribute currentGroup = null;
 
-        // 속성 순회하면서 그룹 속성 분석
         while (iterator.NextVisible(false))
         {
             var field = Array.Find(fields, f => f.Name == iterator.name);
@@ -51,13 +45,13 @@ public class FoldoutGroupEditor : Editor
             if (groupAttr != null)
             {
                 currentGroup = groupAttr;
-                AddToGroup(groupAttr.GroupName, groupAttr, iterator);
+                AddToGroup(groupAttr.groupName, groupAttr, iterator);
                 continue;
             }
 
-            if (currentGroup != null && currentGroup.GroupAllFieldsUntilNext)
+            if (currentGroup != null && currentGroup.groupAllFieldsUntilNext)
             {
-                AddToGroup(currentGroup.GroupName, currentGroup, iterator);
+                AddToGroup(currentGroup.groupName, currentGroup, iterator);
             }
             else
             {
@@ -66,7 +60,6 @@ public class FoldoutGroupEditor : Editor
             }
         }
 
-        // FoldoutGroup이 하나도 없으면 기본 인스펙터 표시
         if (groupedProperties.Count == 0)
         {
             var defaultInspector = new VisualElement();
@@ -74,38 +67,53 @@ public class FoldoutGroupEditor : Editor
             return defaultInspector;
         }
 
-        // 그룹된 속성들 렌더링
         foreach (var groupName in groupedProperties.Keys)
         {
+            var attr = groupAttributes[groupName];
             var foldout = new Foldout
             {
                 text = groupName,
-                value = !groupAttributes[groupName].ClosedByDefault
+                value = !attr.closedByDefault
             };
 
-            foldout.style.borderLeftWidth = 4;
-            foldout.style.borderLeftColor = ExtendedColors.GetColorAt(groupAttributes[groupName].GroupColorIndex);
-            foldout.style.marginBottom = 6;
-            foldout.style.paddingLeft = 4;
+            foldout.AddToClassList("mm-foldout");
+
+            // 색상 처리 (enum 또는 index)
+            Color color = Color.gray;
+            if (attr.colorEnum.HasValue)
+            {
+                var field = typeof(ExtendedColors).GetField(attr.colorEnum.Value.ToString(), BindingFlags.Public | BindingFlags.Static);
+                if (field != null && field.FieldType == typeof(Color))
+                    color = (Color)field.GetValue(null);
+            }
+            else
+            {
+                color = ExtendedColors.GetColorAt(attr.colorIndex);
+            }
+
+            var colorBar = new VisualElement();
+            colorBar.style.width = 4;
+            colorBar.style.backgroundColor = color;
+            colorBar.style.marginRight = 6;
+            colorBar.style.marginTop = 4;
+            colorBar.style.marginBottom = 4;
+            colorBar.style.borderTopLeftRadius = 2;
+            colorBar.style.borderBottomLeftRadius = 2;
+
+            foldout.Insert(0, colorBar);
 
             foreach (var prop in groupedProperties[groupName])
-            {
                 foldout.Add(new PropertyField(prop));
-            }
 
             root.Add(foldout);
         }
 
-        // 그룹되지 않은 속성들 렌더링
         foreach (var prop in ungroupedProperties)
-        {
             root.Add(new PropertyField(prop));
-        }
 
         return root;
     }
 
-    // 그룹에 속성 추가
     private void AddToGroup(string name, FoldoutGroupAttribute attr, SerializedProperty prop)
     {
         if (!groupedProperties.ContainsKey(name))
