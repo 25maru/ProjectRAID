@@ -42,7 +42,7 @@ public class IdleState : PlayerState
         Vector3 move = new(player.moveInput.x, 0, player.moveInput.y);
         if (move.magnitude > 0.1f)
         {
-            player.characterController.Move(move.normalized * player.moveSpeed * Time.deltaTime);
+            player.characterController.Move(Time.deltaTime * player.moveSpeed * move.normalized);
             player.transform.forward = move.normalized;
 
             player.animator.SetFloat("Speed", 1f);

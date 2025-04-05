@@ -56,6 +56,14 @@ public class PlayerController : MonoBehaviour, IDamageable
         stateMachine.Update();
     }
 
+    public void EnableComboWindow()
+    {
+        if (stateMachine.CurrentState is AttackState attackState)
+        {
+            attackState.EnableComboWindow();
+        }
+    }
+
     public void PerformAttack()
     {
         if (stateMachine.CurrentState is AttackState attackState)
@@ -91,7 +99,7 @@ public class PlayerController : MonoBehaviour, IDamageable
         }
         else
         {
-            animator.SetTrigger("Hit"); // 피격 애니메이션 트리거
+            animator.SetTrigger(PlayerAnimatorParams.Hit); // 피격 애니메이션 트리거
         }
     }
 }

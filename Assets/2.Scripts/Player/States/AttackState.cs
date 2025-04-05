@@ -5,35 +5,56 @@ using UnityEngine;
 /// </summary>
 public class AttackState : PlayerState
 {
+    private bool canCombo = false;
     private bool isAnimationFinished = false;
-    private float attackRange = 1.5f;
-    private float attackRadius = 1.0f;
+    private bool receivedNextComboInput = false;
+
+    private int currentCombo = 0;
+    private readonly int maxCombo = 3;
+
+    private readonly float attackRange = 1.5f;
 
     public AttackState(PlayerController player, PlayerStateMachine stateMachine)
         : base(player, stateMachine) { }
 
     public override void Enter()
     {
+        receivedNextComboInput = false;
         isAnimationFinished = false;
+        canCombo = false;
 
-        player.animator.SetTrigger(PlayerAnimatorParams.Attack);
+        currentCombo = 1;
+        PlayComboAnimation(currentCombo);
 
         // 공격 중 캐릭터 이동 방지
-        player.moveInput = Vector2.zero;
-
-        // 여기선 애니메이션 이벤트로 복귀 처리
+        // player.moveInput = Vector2.zero;
     }
 
     public override void HandleInput()
     {
-        // 공격 중에는 입력 무시
+        if (canCombo && player.input.actions["Attack"].WasPressedThisFrame())
+        {
+            receivedNextComboInput = true;
+        }
     }
 
     public override void Update()
     {
         if (isAnimationFinished)
         {
-            stateMachine.ChangeState(player.idleState);
+            if (receivedNextComboInput && currentCombo < maxCombo)
+            {
+                currentCombo++;
+                receivedNextComboInput = false;
+                isAnimationFinished = false;
+                canCombo = false;
+
+                PlayComboAnimation(currentCombo);
+            }
+            else
+            {
+                stateMachine.ChangeState(player.idleState);
+            }
         }
 
 #if UNITY_EDITOR
@@ -42,19 +63,36 @@ public class AttackState : PlayerState
 #endif
     }
 
+    public void PlayComboAnimation(int comboIndex)
+    {
+        if (comboIndex <= PlayerAnimatorParams.Attacks.Length)
+        {
+            int hash = PlayerAnimatorParams.Attacks[comboIndex - 1];
+            player.animator.SetTrigger(hash);
+        }
+        else
+        {
+            Debug.LogWarning("콤보 인덱스가 최대치를 초과했습니다.");
+        }
+    }
+
+    public void EnableComboWindow()
+    {
+        canCombo = true;
+    }
+
     /// <summary>
     /// 공격 애니메이션에서 호출됨 - 타격 판정 수행
     /// </summary>
     public void PerformAttack()
     {
         Vector3 origin = player.transform.position + player.transform.forward;
-        Collider[] hitColliders = Physics.OverlapSphere(origin, attackRadius);
-
-        foreach (var collider in hitColliders)
+        Collider[] hits = Physics.OverlapSphere(origin, attackRange);
+        foreach (var hit in hits)
         {
-            if (collider.TryGetComponent(out IDamageable damageable))
+            if (hit.TryGetComponent(out IDamageable damageable))
             {
-                damageable.TakeDamage(20); // 공격 데미지
+                damageable.TakeDamage(20);
             }
         }
     }
