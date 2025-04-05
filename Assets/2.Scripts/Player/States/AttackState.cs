@@ -27,12 +27,19 @@ public class AttackState : PlayerState
         PlayComboAnimation(currentCombo);
 
         // 공격 중 캐릭터 이동 방지
-        player.moveInput = Vector2.zero;
+        player.SetMoveInput(Vector2.zero);
+    }
+
+    public override void Exit()
+    {
+        canCombo = false;
+        receivedNextComboInput = false;
+        isAnimationFinished = false;
     }
 
     public override void HandleInput()
     {
-        if (canCombo && player.input.actions["Attack"].WasPressedThisFrame())
+        if (canCombo && player.Input.actions["Attack"].WasPressedThisFrame())
         {
             receivedNextComboInput = true;
         }
@@ -53,7 +60,7 @@ public class AttackState : PlayerState
             }
             else
             {
-                stateMachine.ChangeState(player.idleState);
+                stateMachine.ChangeState(player.IdleState);
             }
         }
     }
@@ -66,7 +73,7 @@ public class AttackState : PlayerState
         if (comboIndex <= PlayerAnimatorParams.Attacks.Length)
         {
             int hash = PlayerAnimatorParams.Attacks[comboIndex - 1];
-            player.animator.SetTrigger(hash);
+            player.Animator.SetTrigger(hash);
         }
         else
         {
@@ -86,7 +93,7 @@ public class AttackState : PlayerState
             if (hit.TryGetComponent(out IDamageable damageable))
             {
                 damageable.TakeDamage(20, player.transform.position);
-                HitStopManager.Instance.DoHitStop(0.075f);
+                HitStopManager.Instance.DoHitStop();
                 CameraShakeManager.Instance.Shake();
             }
         }

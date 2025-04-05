@@ -12,7 +12,6 @@ public static class PlayerAnimatorParams
 
     /// <summary>
     /// 콤보 공격용 애니메이션 트리거 해시값 배열
-    /// Attack1 → [0], Attack2 → [1], ...
     /// </summary>
     public static readonly int[] Attacks = new int[]
     {

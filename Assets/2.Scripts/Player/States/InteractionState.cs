@@ -5,32 +5,37 @@ using UnityEngine;
 /// </summary>
 public class InteractionState : PlayerState
 {
-    private readonly float interactionTime = 2f;
-    private float timer;
+    private bool isInteractionFinished = false;
 
     public InteractionState(PlayerController player, PlayerStateMachine stateMachine)
         : base(player, stateMachine) { }
 
     public override void Enter()
     {
-        timer = 0f;
-        player.animator.SetTrigger("Interact"); // 필요시 Animator 파라미터 분리 가능
-        Debug.Log("상호작용 시작");
+        isInteractionFinished = false;
+        player.SetMoveInput(Vector2.zero);
+        player.Animator.SetTrigger(PlayerAnimatorParams.Interact);
+        player.CurrentInteractable?.Interact(player);
     }
 
     public override void HandleInput()
     {
-        // 입력 잠금
+        // 입력 무시
     }
 
     public override void Update()
     {
-        timer += Time.deltaTime;
-
-        if (timer >= interactionTime)
+        if (isInteractionFinished)
         {
-            Debug.Log("상호작용 완료");
-            stateMachine.ChangeState(player.idleState);
+            stateMachine.ChangeState(player.IdleState);
         }
+    }
+
+    /// <summary>
+    /// 애니메이션 이벤트: 현재 상호작용 애니메이션 종료
+    /// </summary>
+    public void OnInteractionAnimationEnd()
+    {
+        isInteractionFinished = true;
     }
 }

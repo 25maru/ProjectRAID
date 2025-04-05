@@ -6,10 +6,14 @@ using UnityEngine;
 /// </summary>
 public class HitStopManager : MonoSingleton<HitStopManager>
 {
+    [SerializeField] private float hitStopDuration = 0.075f;
+
     private bool isHitStopActive = false;
 
-    public void DoHitStop(float duration = 0.05f)
+    public void DoHitStop(float duration = 0f)
     {
+        duration = duration <= 0f ? hitStopDuration : duration;
+
         if (!isHitStopActive)
         {
             StartCoroutine(HitStopCoroutine(duration));
