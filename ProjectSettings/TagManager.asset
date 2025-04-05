@@ -3,7 +3,15 @@
 --- !u!78 &1
 TagManager:
   serializedVersion: 2
-  tags: []
+  tags:
+  - Enemy
+  - Hitbox
+  - Hurtbox
+  - Interactable
+  - Item
+  - Weapon
+  - CameraTarget
+  - SpawnPoint
   layers:
   - Default
   - TransparentFX
@@ -13,19 +21,19 @@ TagManager:
   - UI
   - 
   - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
-  - 
+  - Player
+  - Enemy
+  - Hitbox
+  - Hurtbox
+  - Interactable
+  - Environment
+  - Cliff
+  - Obstacle
+  - Item
+  - Weapon
+  - PlayerOnly
+  - EnemyOnly
+  - InvisibleWall
   - 
   - 
   - 
