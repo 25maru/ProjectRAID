@@ -1,9 +1,9 @@
 /* 전체 Foldout 스타일 */
 Foldout {
     background-color: rgba(0, 0, 0, 0.12);
-    border-radius: 4px;
-    margin-top: 4px;
-    margin-bottom: 4px;
+    border-radius: 3px;
+    margin-top: 3px;
+    margin-bottom: 3px;
     padding: 0;
     overflow: hidden;
 }
@@ -24,7 +24,7 @@ Foldout > Toggle {
 /* Foldout 토글 아이콘 위치 */
 .unity-foldout__toggle {
     margin-left: 0px;
-    margin-right: 4px;
+    margin-right: 0px;
 }
 
 /* Foldout 안쪽 콘텐츠 정렬 (헤더 아래 간격 확보) */

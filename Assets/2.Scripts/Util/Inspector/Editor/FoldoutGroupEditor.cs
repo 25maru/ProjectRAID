@@ -25,7 +25,9 @@ public class FoldoutGroupEditor : Editor
         var root = new VisualElement();
 
         if (editorStyleSheet != null)
+        {
             root.styleSheets.Add(editorStyleSheet);
+        }
 
         var iterator = serializedObject.GetIterator();
         iterator.NextVisible(true);
@@ -76,40 +78,40 @@ public class FoldoutGroupEditor : Editor
                 value = !attr.closedByDefault
             };
 
-            foldout.AddToClassList("mm-foldout");
-
-            // 색상 처리 (enum 또는 index)
             Color color = Color.gray;
             if (attr.colorEnum.HasValue)
             {
                 var field = typeof(ExtendedColors).GetField(attr.colorEnum.Value.ToString(), BindingFlags.Public | BindingFlags.Static);
                 if (field != null && field.FieldType == typeof(Color))
+                {
                     color = (Color)field.GetValue(null);
+                }
             }
             else
             {
                 color = ExtendedColors.GetColorAt(attr.colorIndex);
             }
 
-            var colorBar = new VisualElement();
-            colorBar.style.width = 4;
-            colorBar.style.backgroundColor = color;
-            colorBar.style.marginRight = 6;
-            colorBar.style.marginTop = 4;
-            colorBar.style.marginBottom = 4;
-            colorBar.style.borderTopLeftRadius = 2;
-            colorBar.style.borderBottomLeftRadius = 2;
-
-            foldout.Insert(0, colorBar);
+            foldout.style.borderLeftWidth = 3;
+            foldout.style.borderRightWidth = 0;
+            foldout.style.borderLeftColor = color;
+            foldout.style.borderLeftColor = color;
+            foldout.style.marginBottom = 6;
+            foldout.style.paddingLeft = 0;
+            foldout.style.paddingRight = 0;
 
             foreach (var prop in groupedProperties[groupName])
+            {
                 foldout.Add(new PropertyField(prop));
+            }
 
             root.Add(foldout);
         }
 
         foreach (var prop in ungroupedProperties)
+        {
             root.Add(new PropertyField(prop));
+        }
 
         return root;
     }
