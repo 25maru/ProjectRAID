@@ -5,14 +5,13 @@ using UnityEngine.InputSystem;
 /// 플레이어 캐릭터 제어 및 상태 관리 메인 클래스
 /// </summary>
 [RequireComponent(typeof(CharacterController))]
+[RequireComponent(typeof(PlayerInputHandler))]
 public class PlayerController : MonoBehaviour, IDamageable
 {
     [FoldoutGroup("이동", ExtendedColor.White)]
     [SerializeField] private float moveSpeed = 2f;                      // 걷기 속도
     [SerializeField] private float runSpeed = 6f;                       // 달리기 속도
     [SerializeField] private float rotationSpeed = 720f;                // 회전 속도
-    private Vector2 moveInput;                                          // 이동 입력
-    private bool isRunning = false;                                     // 달리기 여부
 
     [FoldoutGroup("넉백", ExtendedColor.Crimson)]
     [SerializeField] private float knockbackDuration = 0.2f;            // 넉백 지속 시간
@@ -39,8 +38,8 @@ public class PlayerController : MonoBehaviour, IDamageable
 
     [FoldoutGroup("컴포넌트", ExtendedColor.SeaGreen)]
     [SerializeField] private CharacterController characterController;   // 캐릭터 컨트롤러
+    [SerializeField] private PlayerInputHandler inputHandler;           // 인풋 핸들러
     [SerializeField] private Animator animator;                         // 애니메이터
-    [SerializeField] private PlayerInput input;                         // 인풋 시스템
 
     [FoldoutGroup("상태 머신", ExtendedColor.DodgerBlue)]
     private PlayerStateMachine stateMachine;                            // 상태 머신
@@ -53,13 +52,13 @@ public class PlayerController : MonoBehaviour, IDamageable
     public float MoveSpeed => moveSpeed;
     public float RunSpeed => runSpeed;
     public float RotationSpeed => rotationSpeed;
-    public Vector2 MoveInput => moveInput;
-    public bool IsRunning => isRunning;
+    public Vector2 MoveInput => inputHandler.MoveInput;
+    public bool IsRunning => inputHandler.IsRunning;
 
     // 컴포넌트
     public CharacterController CharacterController => characterController;
+    public PlayerInputHandler InputHandler => inputHandler;
     public Animator Animator => animator;
-    public PlayerInput Input => input;
 
     // 상태 머신
     public PlayerStateMachine StateMachine => stateMachine;
@@ -71,15 +70,27 @@ public class PlayerController : MonoBehaviour, IDamageable
     // 상호작용
     public IInteractable CurrentInteractable => currentInteractable;
 
-    /// <summary>
-    /// 컴포넌트 초기화 및 상태 인스턴스 생성
-    /// </summary>
     private void Awake()
+    {
+        InitializeComponents();
+        InitializeStates();
+    }
+
+    /// <summary>
+    /// 주요 컴포넌트를 캐싱합니다.
+    /// </summary>
+    private void InitializeComponents()
     {
         characterController = GetComponent<CharacterController>();
         animator = GetComponentInChildren<Animator>();
-        input = GetComponent<PlayerInput>();
+        inputHandler = GetComponent<PlayerInputHandler>();
+    }
 
+    /// <summary>
+    /// 상태 인스턴스를 초기화합니다.
+    /// </summary>
+    private void InitializeStates()
+    {
         stateMachine = new PlayerStateMachine();
         idleState = new IdleState(this, stateMachine);
         attackState = new AttackState(this, stateMachine);
@@ -96,20 +107,31 @@ public class PlayerController : MonoBehaviour, IDamageable
         stateMachine.Initialize(idleState);
     }
 
-    /// <summary>
-    /// 매 프레임마다 상호작용 체크, 무적/넉백 처리, 상태 업데이트 수행
-    /// </summary>
     private void Update()
     {
         CheckForInteractables();
+        HandleKnockback();
+        HandleInvincibility();
+        UpdateStateMachine();
+    }
 
+    /// <summary>
+    /// 넉백 처리
+    /// </summary>
+    private void HandleKnockback()
+    {
         if (knockbackTimer > 0)
         {
             knockbackTimer -= Time.deltaTime;
-            characterController.Move(Time.deltaTime * knockbackPower * knockbackDirection);
-            return;
+            characterController.Move(knockbackDirection * knockbackPower * Time.deltaTime);
         }
+    }
 
+    /// <summary>
+    /// 피격 무적 처리
+    /// </summary>
+    private void HandleInvincibility()
+    {
         if (isInvincible)
         {
             invincibleTimer -= Time.deltaTime;
@@ -118,11 +140,20 @@ public class PlayerController : MonoBehaviour, IDamageable
                 isInvincible = false;
             }
         }
-
-        stateMachine.CurrentState.HandleInput();
-        stateMachine.CurrentState.Update();
     }
 
+    /// <summary>
+    /// 상태 머신 입력 및 업데이트 호출
+    /// </summary>
+    private void UpdateStateMachine()
+    {
+        if (knockbackTimer <= 0)
+        {
+            stateMachine.CurrentState.HandleInput();
+            stateMachine.CurrentState.Update();
+        }
+    }
+    
     /// <summary>
     /// 물리 업데이트 (필요 시 상태에서 구현)
     /// </summary>
@@ -191,32 +222,14 @@ public class PlayerController : MonoBehaviour, IDamageable
         else
         {
             animator.SetTrigger(PlayerAnimatorParams.Hit);
-            HitStopManager.Instance.DoHitStop(0.075f);
+            HitStopManager.Instance.DoHitStop();
             CameraShakeManager.Instance.Shake();
         }
     }
 
-    /// <summary>
-    /// Shift 입력으로 달리기 상태 전환 처리
-    /// </summary>
-    public void OnRun(InputAction.CallbackContext context)
-    {
-        if (context.started)
-        {
-            isRunning = true;
-        }
-        else if (context.canceled)
-        {
-            isRunning = false;
-        }
-    }
-
-    /// <summary>
-    /// 외부 상태에서 이동 입력을 설정합니다.
-    /// </summary>
     public void SetMoveInput(Vector2 input)
     {
-        moveInput = input;
+        // 유지 - 외부에서 MoveInput을 오버라이드할 경우 대비
     }
 
     /// <summary>

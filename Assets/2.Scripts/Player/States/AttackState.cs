@@ -35,11 +35,17 @@ public class AttackState : PlayerState
         canCombo = false;
         receivedNextComboInput = false;
         isAnimationFinished = false;
+
+        // 트리거 초기화로 다음 상태에서 중복 재생 방지
+        foreach (var trigger in PlayerAnimatorParams.Attacks)
+        {
+            player.Animator.ResetTrigger(trigger);
+        }
     }
 
     public override void HandleInput()
     {
-        if (canCombo && player.Input.actions["Attack"].WasPressedThisFrame())
+        if (canCombo && player.InputHandler.IsAttackPressed)
         {
             receivedNextComboInput = true;
         }

@@ -10,24 +10,20 @@ public class DeadState : PlayerState
 
     public override void Enter()
     {
-        player.SetMoveInput(Vector2.zero);
+        base.Enter();
         player.Animator.SetTrigger(PlayerAnimatorParams.Dead);
-        player.Input.DeactivateInput();
+
+        // TODO: 상태 진입 시 처리할 내용이 있다면 여기에 작성
+        // UI 호출, 리스폰 대기 등
     }
 
     public override void Exit()
     {
         // TODO: 상태 종료 시 처리할 내용이 있다면 여기에 작성
-        // 입력 시스템 재활성화, 리스폰 관련 초기화 등
+        // 인풋 시스템 재활성화, 리스폰 관련 초기화 등
     }
 
-    public override void HandleInput()
-    {
-        // 입력 무시
-    }
-
-    public override void Update()
-    {
-        // 상태 고정, 전이 없음 - 외부(GameManager 등)에서 상태 전이 제어 예정
-    }
+    public override void HandleInput() { }
+    public override void Update() { }
+    public override void PhysicsUpdate() { }
 }

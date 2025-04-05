@@ -1,41 +1,49 @@
 using UnityEngine;
 
 /// <summary>
-/// 상호작용 상태: 특정 대상과 상호작용 후 Idle로 전환
+/// 상호작용 상태: 특정 대상과 상호작용 처리 및 대기 상태로 복귀
 /// </summary>
 public class InteractionState : PlayerState
 {
-    private bool isInteractionFinished = false;
+    private readonly float interactionDuration = 1f;
+    private float timer;
+    private bool interactionStarted;
 
     public InteractionState(PlayerController player, PlayerStateMachine stateMachine)
         : base(player, stateMachine) { }
 
+
     public override void Enter()
     {
-        isInteractionFinished = false;
+        timer = 0f;
+        interactionStarted = false;
         player.SetMoveInput(Vector2.zero);
         player.Animator.SetTrigger(PlayerAnimatorParams.Interact);
-        player.CurrentInteractable?.Interact(player);
+
     }
 
-    public override void HandleInput()
+    public override void Exit()
     {
-        // 입력 무시
+        player.CurrentInteractable?.HideHighlight();
     }
 
     public override void Update()
     {
-        if (isInteractionFinished)
+        timer += Time.deltaTime;
+
+        if (!interactionStarted && timer >= 0.25f)
+        {
+            // 애니메이션이 어느 정도 진행된 후 상호작용 실행
+            interactionStarted = true;
+            player.CurrentInteractable?.Interact(player);
+        }
+
+        if (timer >= interactionDuration)
         {
             stateMachine.ChangeState(player.IdleState);
         }
     }
 
-    /// <summary>
-    /// 애니메이션 이벤트: 현재 상호작용 애니메이션 종료
-    /// </summary>
-    public void OnInteractionAnimationEnd()
-    {
-        isInteractionFinished = true;
-    }
+    public override void HandleInput() { }
+    public override void PhysicsUpdate() { }
 }

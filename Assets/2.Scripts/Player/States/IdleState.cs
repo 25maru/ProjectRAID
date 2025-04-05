@@ -19,21 +19,21 @@ public class IdleState : PlayerState
 
     public override void HandleInput()
     {
-        Vector2 input = player.Input.actions["Move"].ReadValue<Vector2>();
-        player.SetMoveInput(input); // 이동 입력 저장
+        Vector2 input = player.MoveInput;
+        player.SetMoveInput(input);
 
         if (input.sqrMagnitude > 0.01f && player.CharacterController.isGrounded)
         {
             // 이동 입력이 있는 경우 이동 처리 계속 진행
         }
 
-        if (player.Input.actions["Attack"].WasPerformedThisFrame())
+        if (player.InputHandler.IsAttackPressed)
         {
             stateMachine.ChangeState(player.AttackState);
             return;
         }
 
-        if (player.Input.actions["Interact"].WasPerformedThisFrame() && player.CurrentInteractable != null)
+        if (player.InputHandler.IsInteractPressed && player.CurrentInteractable != null)
         {
             stateMachine.ChangeState(player.InteractionState);
             return;
