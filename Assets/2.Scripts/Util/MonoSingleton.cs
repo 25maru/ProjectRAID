@@ -9,6 +9,11 @@ public abstract class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T
     private static readonly object lockObject = new();
     private static bool isShuttingDown = false;
 
+    /// <summary>
+    /// 해당 싱글톤이 씬 전환 시 파괴되지 않도록 설정할지 여부 (기본값: true)
+    /// </summary>
+    protected virtual bool IsPersistent => true;
+
     public static T Instance
     {
         get
@@ -21,22 +26,23 @@ public abstract class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T
 
             lock (lockObject)
             {
-                // 유니티 버전에 따라 적절한 메서드 사용
-                if (instance == null)
-                {
 #if UNITY_2023_1_OR_NEWER
-                    instance = FindFirstObjectByType<T>();
+                instance ??= FindFirstObjectByType<T>();
 #else
-                    instance = FindObjectOfType<T>();
+                instance ??= FindObjectOfType<T>();
 #endif
 
-                    if (instance == null)
+                if (instance == null)
+                {
+                    GameObject go = new(typeof(T).Name);
+                    instance = go.AddComponent<T>();
+
+                    if (instance.IsPersistent)
                     {
-                        GameObject singletonObject = new GameObject(typeof(T).Name);
-                        instance = singletonObject.AddComponent<T>();
-                        DontDestroyOnLoad(singletonObject);
+                        DontDestroyOnLoad(go);
                     }
                 }
+
                 return instance;
             }
         }
@@ -47,7 +53,11 @@ public abstract class MonoSingleton<T> : MonoBehaviour where T : MonoSingleton<T
         if (instance == null)
         {
             instance = this as T;
-            DontDestroyOnLoad(gameObject);
+
+            if (IsPersistent)
+            {
+                DontDestroyOnLoad(gameObject);
+            }
         }
         else if (instance != this)
         {
