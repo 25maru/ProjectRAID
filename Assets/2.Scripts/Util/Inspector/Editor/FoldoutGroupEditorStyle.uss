@@ -1,0 +1,48 @@
+/* 전체 Foldout 스타일 */
+Foldout {
+    background-color: rgba(0, 0, 0, 0.12);
+    border-radius: 4px;
+    margin-top: 4px;
+    margin-bottom: 4px;
+    padding: 0;
+    overflow: hidden;
+}
+
+/* Foldout 헤더 라인 전체 배경 */
+Foldout > Toggle {
+    background-color: rgba(0, 0, 0, 0.12);
+    padding: 6px 6px;
+    margin: 0;
+}
+
+/* Foldout 텍스트 스타일 */
+.unity-foldout__text {
+    font-size: 12px;
+    -unity-font-style: bold;
+}
+
+/* Foldout 토글 아이콘 위치 */
+.unity-foldout__toggle {
+    margin-left: 0px;
+    margin-right: 4px;
+}
+
+/* Foldout 안쪽 콘텐츠 정렬 (헤더 아래 간격 확보) */
+Foldout > #unity-content {
+    padding-top: 6px;
+    padding-bottom: 6px;
+    padding-left: 10px;
+    padding-right: 10px;
+    margin: 0;
+}
+
+/* PropertyField 내부 여백 최소화 */
+.unity-property-field {
+    margin-top: 0;
+    margin-bottom: 1px;
+}
+
+/* 전반적인 레이블 폰트 */
+Label {
+    -unity-font-style: normal;
+}
