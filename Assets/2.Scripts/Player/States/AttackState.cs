@@ -12,7 +12,7 @@ public class AttackState : PlayerState
     private int currentCombo = 0;
     private readonly int maxCombo = 3;
 
-    private readonly float attackRange = 1.5f;
+    private readonly float attackRadius = 1.5f;
 
     public AttackState(PlayerController player, PlayerStateMachine stateMachine)
         : base(player, stateMachine) { }
@@ -27,7 +27,7 @@ public class AttackState : PlayerState
         PlayComboAnimation(currentCombo);
 
         // 공격 중 캐릭터 이동 방지
-        // player.moveInput = Vector2.zero;
+        player.moveInput = Vector2.zero;
     }
 
     public override void HandleInput()
@@ -56,13 +56,11 @@ public class AttackState : PlayerState
                 stateMachine.ChangeState(player.idleState);
             }
         }
-
-#if UNITY_EDITOR
-        // 디버그용 히트박스 시각화
-        Debug.DrawRay(player.transform.position + Vector3.up, player.transform.forward * attackRange, Color.red);
-#endif
     }
 
+    /// <summary>
+    /// 현재 콤보 인덱스에 맞는 공격 애니메이션 재생
+    /// </summary>
     public void PlayComboAnimation(int comboIndex)
     {
         if (comboIndex <= PlayerAnimatorParams.Attacks.Length)
@@ -76,29 +74,34 @@ public class AttackState : PlayerState
         }
     }
 
+    /// <summary>
+    /// 애니메이션 이벤트: 실제 공격 판정 처리
+    /// </summary>
+    public void PerformAttack()
+    {
+        Vector3 origin = player.transform.position + player.transform.forward;
+        Collider[] hits = Physics.OverlapSphere(origin, attackRadius);
+        foreach (var hit in hits)
+        {
+            if (hit.TryGetComponent(out IDamageable damageable))
+            {
+                damageable.TakeDamage(20, player.transform.position);
+                HitStopManager.Instance.DoHitStop(0.075f);
+                CameraShakeManager.Instance.Shake();
+            }
+        }
+    }
+
+    /// <summary>
+    /// 애니메이션 이벤트: 콤보 입력 받을 수 있는 구간 진입
+    /// </summary>
     public void EnableComboWindow()
     {
         canCombo = true;
     }
 
     /// <summary>
-    /// 공격 애니메이션에서 호출됨 - 타격 판정 수행
-    /// </summary>
-    public void PerformAttack()
-    {
-        Vector3 origin = player.transform.position + player.transform.forward;
-        Collider[] hits = Physics.OverlapSphere(origin, attackRange);
-        foreach (var hit in hits)
-        {
-            if (hit.TryGetComponent(out IDamageable damageable))
-            {
-                damageable.TakeDamage(20);
-            }
-        }
-    }
-
-    /// <summary>
-    /// 공격 애니메이션 종료 시 호출됨
+    /// 애니메이션 이벤트: 현재 공격 애니메이션 종료
     /// </summary>
     public void OnAttackAnimationEnd()
     {

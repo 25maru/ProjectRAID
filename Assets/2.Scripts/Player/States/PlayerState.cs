@@ -18,4 +18,5 @@ public abstract class PlayerState
     public virtual void Exit() { }
     public virtual void HandleInput() { }
     public virtual void Update() { }
+    public virtual void PhysicsUpdate() { }
 }

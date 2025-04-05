@@ -52,4 +52,10 @@ public class IdleState : PlayerState
             player.animator.SetFloat("Speed", 0f);
         }
     }
+
+    public override void PhysicsUpdate()
+    {
+        Vector3 gravity = Vector3.down * 9.8f;
+        player.characterController.Move(gravity * Time.fixedDeltaTime);
+    }
 }
